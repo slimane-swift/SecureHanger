@@ -8,32 +8,24 @@
 
 import Suv
 
-public enum ClientError: ErrorProtocol {
-    case httpsSchemeRequired
-    case hostRequired
-    case brokenConnection
-}
-
-public final class ClientConnection: Connection {
-    
-    public enum ConnectionState {
-        case Disconnected
-        case Connected
-        case Closed
-    }
-    
-    public private(set) var state: ConnectionState = .Disconnected
-    
+public final class SecureClientConnection: Connection {
     public let host: String
+    
     public let port: Int
     
     public var connection: C7.Connection
+    
+    private var _opend = false
+    
+    public var opend: Bool {
+        return _opend
+    }
     
     public var closed: Bool {
         return connection.closed
     }
     
-    private var retainedSelf: Unmanaged<ClientConnection>? = nil
+    private var retainedSelf: Unmanaged<SecureClientConnection>? = nil
     
     public init(host: String, port: Int = 443) throws {
         self.host = host
@@ -44,7 +36,7 @@ public final class ClientConnection: Connection {
     
     public func open(timingOut deadline: Double = .never) throws {
         try connection.open(timingOut: deadline)
-        self.state = .Connected
+        _opend = true
     }
     
     public func send(_ data: Data, timingOut deadline: Double = .never) throws {
@@ -61,7 +53,6 @@ public final class ClientConnection: Connection {
     
     public func close() throws {
         try connection.close()
-        self.state = .Closed
         retainedSelf?.release()
     }
 }

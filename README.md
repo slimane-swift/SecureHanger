@@ -41,7 +41,7 @@ import SecureHanger
 
 let request = Request(method: .get, uri: URI(path: "/"))
 
-try! _ = SecureHanger(connection: ClientConnection(host: "miketokyo.com"), request: request) {
+try! _ = SecureHanger(connection: SecureClientConnection(host: "miketokyo.com"), request: request) {
     let response = try! $0()
     print(response)
 }
@@ -55,7 +55,7 @@ Loop.defaultLoop.run()
 You can reuse connection for the host.
 
 Note: You need to manage connection life time on your own.
-The `ClientConnection` should be released/closed with `close` method.
+The `SecureClientConnection` should be released/closed with `close` method.
 
 Here is an example.
 
@@ -64,7 +64,7 @@ Here is an example.
 import Hanger
 
 // Make a request with Connection: Keep-Alive header
-let connection = try! ClientConnection(host: "miketokyo.com")
+let connection = try! SecureClientConnection(host: "miketokyo.com")
 
 let fooRequest = Request(method: .get, uri: URI(path: "/foo"), headers: ["Connection": "Keep-Alive"])
 

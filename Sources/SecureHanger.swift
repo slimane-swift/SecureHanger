@@ -13,8 +13,8 @@ import QWFuture
 
 public struct SecureHanger {
     
-    public init(connection: ClientConnection, request: Request, completion: ((Void) throws -> Response) -> Void) throws {
-        if case .Closed = connection.state {
+    public init(connection: SecureClientConnection, request: Request, completion: ((Void) throws -> Response) -> Void) throws {
+        if connection.closed {
             completion {
                 throw StreamError.closedStream(data: [])
             }
@@ -24,11 +24,13 @@ public struct SecureHanger {
         var request = request
         request.uri.scheme = "https"
         request.uri.host = connection.host
-        request.uri.port = connection.port
+        if connection.port != 443 {
+            request.uri.port = connection.port
+        }
         
         let future = QWFuture<Response> { (result: (() throws -> Response) -> ()) in
             result {
-                if case .Disconnected = connection.state {
+                if !connection.opend {
                     try connection.open()
                 }
                 return try sendRequest(connection: connection, request: request)
@@ -49,7 +51,7 @@ public struct SecureHanger {
     }
 }
 
-private func sendRequest(connection: ClientConnection, request: Request) throws -> Response {
+private func sendRequest(connection: SecureClientConnection, request: Request) throws -> Response {
     var request = request
     request.userAgent = "Hanger"
     
