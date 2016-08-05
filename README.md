@@ -1,4 +1,4 @@
-# Hanger
+# SecureHanger
 An asynchronous HTTPS Client for Swift
 
 
@@ -32,7 +32,7 @@ And then, add
 ```swift
 .Package(url: "https://github.com/slimane-swift/SecureHanger.git", majorVersion: 0, minor: 1)
 ```
-in to your Package.swift
+to your Package.swift
 
 
 ## Usage
@@ -44,6 +44,9 @@ let request = Request(method: .get, uri: URI(path: "/"))
 try! _ = SecureHanger(connection: SecureClientConnection(host: "miketokyo.com"), request: request) {
     let response = try! $0()
     print(response)
+    // Need to call connection.close
+    // If you didn't specify `Connection: Close` header
+    try! connection.close()
 }
 
 // Once need to run uv_loop
@@ -54,7 +57,7 @@ Loop.defaultLoop.run()
 ## Reusable Connection
 You can reuse connection for the host.
 
-Note: You need to manage connection life time on your own.
+Note: You need to manage the connection life time on your own.
 The `SecureClientConnection` should be released/closed with `close` method.
 
 Here is an example.
@@ -63,34 +66,31 @@ Here is an example.
 ```swift
 import Hanger
 
-// Make a request with Connection: Keep-Alive header
 let connection = try! SecureClientConnection(host: "miketokyo.com")
 
-let fooRequest = Request(method: .get, uri: URI(path: "/foo"), headers: ["Connection": "Keep-Alive"])
+// Make a request with Connection: Keep-Alive header
+let fooRequest = Request(method: .get, uri: URI(path: "/foo"))
 
 try! _ = SecureHanger(connection: connection, request: fooRequest) {
     let response = try! $0()
     print(response)
-}
 
-let barRequest = Request(method: .get, uri: URI(path: "/bar"), headers: ["Connection": "Keep-Alive"])
+    let barRequest = Request(method: .get, uri: URI(path: "/bar"))
 
-try! _ = SecureHanger(connection: connection, request: barRequest) {
-    let response = try! $0()
-    print(response)
-}
+    // connection is still retained
+    try! _ = SecureHanger(connection: connection, request: barRequest) {
+        let response = try! $0()
+        print(response)
+    }
 
-let t = Timer(tick: 1000)
-t.start {
-  t.end()
-  try! connection.close() // Close connection
+    try! connection.close() // connection will be released
 }
 
 Loop.defaultLoop.run()
 ```
 
 ## Streaming
-under construction
+Getting ready
 
 ## Package.swift
 ```swift
