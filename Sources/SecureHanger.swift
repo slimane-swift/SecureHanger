@@ -11,6 +11,12 @@
 import HTTPSerializer
 import QWFuture
 
+extension Request {
+    var shouldClose: Bool {
+        return connection?.lowercased() == "close"
+    }
+}
+
 public struct SecureHanger {
     
     public init(connection: SecureClientConnection, request: Request, completion: ((Void) throws -> Response) -> Void) throws {
@@ -53,7 +59,18 @@ public struct SecureHanger {
 
 private func sendRequest(connection: SecureClientConnection, request: Request) throws -> Response {
     var request = request
-    request.userAgent = "Hanger"
+    
+    if request.userAgent == nil {
+        request.userAgent = "SecureHanger HTTP Client"
+    }
+    
+    if request.host == nil {
+        request.host = connection.host
+    }
+    
+    if request.connection == nil {
+        request.connection = "Close"
+    }
     
     let serializer = RequestSerializer()
     try serializer.serialize(request, to: connection)
@@ -63,7 +80,7 @@ private func sendRequest(connection: SecureClientConnection, request: Request) t
     while true {
         let data = try connection.receive()
         if let response = try parser.parse(data) {
-            if !request.isKeepAlive {
+            if request.shouldClose {
                 try connection.close()
             }
             return response
