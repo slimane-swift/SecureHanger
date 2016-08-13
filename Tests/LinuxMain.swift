@@ -1,5 +1,5 @@
 import XCTest
-@testable import SecureHangerTestSuite
+@testable import SecureHangerTests
 
 XCTMain([
      testCase(SecureHangerTests.allTests),

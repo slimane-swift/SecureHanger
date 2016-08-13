@@ -19,7 +19,7 @@ extension Request {
 
 public struct SecureHanger {
 
-    public init(connection: SecureClientConnection, request: Request, completion: ((Void) throws -> Response) -> Void) throws {
+    public init(connection: SecureClientConnection, request: Request, completion: @escaping ((Void) throws -> Response) -> Void) throws {
         if connection.closed {
             completion {
                 throw StreamError.closedStream(data: [])
@@ -68,14 +68,13 @@ private func sendRequest(connection: SecureClientConnection, request: Request) t
         request.host = connection.host
     }
 
-    let serializer = RequestSerializer()
-    try serializer.serialize(request, to: connection)
+    try RequestSerializer(stream: connection).serialize(request)
 
     let parser = ResponseParser()
 
     while true {
         let data = try connection.receive()
-        if let response = try parser.parse(data) {
+        if let response = try parser.parse(data: data) {
             if request.shouldClose {
                 try connection.close()
             }

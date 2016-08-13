@@ -8,13 +8,13 @@
 
 import SocksCore
 import SecretSocks
-import SSL
+import TLS
 import C7
 
 public class TCPSSLConnection: Connection {
-    var secureSocket: SSL.Socket
+    var secureSocket: TLS.Socket
     let socket: TCPInternetSocket
-    let retainedSecureSocket: Unmanaged<SSL.Socket>
+    let retainedSecureSocket: Unmanaged<TLS.Socket>
     
     public var closed: Bool {
         return socket.closed
@@ -47,7 +47,7 @@ public class TCPSSLConnection: Connection {
         do {
             try socket.close()
         } catch {
-            if let error = error as? SocksCore.Error {
+            if let error = error as? SocksError {
                 switch error.type {
                 case .closeSocketFailed:
                     return
